@@ -81,6 +81,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DATA_BASE_URL'),
         'PASSWORD': 'npg_m0NjLavguH2p',
+        'USER': 'npg_m0NjLavguH2p',
+        'HOST': 'ep-late-surf-aqxnaic5-pooler.c-8.us-east-1.aws.neon.tech',
+        'PORT': '5432',
     }
 }
 
