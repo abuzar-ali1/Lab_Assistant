@@ -2,9 +2,14 @@
 import openai
 from django.conf import settings
 from .models import LabReport, TestResult
+from dotenv import load_dotenv
+import os
+from urllib.parse import urlparse
 import json
 
-openai.api_key = settings.OPENAI_API_KEY
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def process_lab_report(report_id):
     try:
