@@ -6,11 +6,12 @@ from django.conf import settings
 from .models import LabReport, TestResult
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
 
-# Configure the Gemini API client
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+env_path = os.path.join(settings.BASE_DIR, '.env')
+load_dotenv(dotenv_path=env_path)
+
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def process_lab_report(report_id):
     try:
@@ -38,9 +39,7 @@ def process_lab_report(report_id):
         - explanation_english: simple explanation in English
         """
 
-        # Initialize the model 
-        # gemini-1.5-flash is perfect here: it's fast, multimodal, and has a great free tier.
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
 
         # Call the API
         # We pass the prompt and the file bytes together. 
