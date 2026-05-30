@@ -20,7 +20,7 @@ export default function UploadPage() {
     formData.append('file', file);
 
     try {
-      const { data } = await api.post('/reports/upload/', formData, {
+      const { data } = await api.post('/upload/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       // Redirect to the report detail page (report is still processing)
