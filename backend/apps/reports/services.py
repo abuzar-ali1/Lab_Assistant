@@ -1,15 +1,16 @@
 # reports/services.py
-import openai
+import os
+import json
+import google.generativeai as genai
 from django.conf import settings
 from .models import LabReport, TestResult
 from dotenv import load_dotenv
-import os
-from urllib.parse import urlparse
-import json
 
+# Load environment variables
 load_dotenv()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configure the Gemini API client
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 def process_lab_report(report_id):
     try:
@@ -17,19 +18,17 @@ def process_lab_report(report_id):
         report.status = LabReport.Status.PROCESSING
         report.save()
 
-        # Read file content 
+        # Read file content directly as bytes
         with report.file.open('rb') as f:
             file_bytes = f.read()
 
-        # Encode the file for the API (simplified – real implementation depends on file type)
-        import base64
-        encoded_file = base64.b64encode(file_bytes).decode('utf-8')
-        file_media_type = 'application/pdf' if report.file.name.endswith('.pdf') else 'image/jpeg'
+        # Determine mime type (Gemini needs to know if it's looking at an image or a document)
+        file_media_type = 'application/pdf' if report.file.name.lower().endswith('.pdf') else 'image/jpeg'
 
-        # GPT-4 Vision prompt
+        # The Prompt
         prompt = """
-        You are a medical lab report explainer. Extract every test result from the lab report image/PDF.
-        Return a JSON array where each object has:
+        You are a medical lab report explainer. Extract every test result from the lab report.
+        Return a JSON array where each object has EXACTLY these keys:
         - test_name: string
         - value: string
         - unit: string
@@ -39,40 +38,30 @@ def process_lab_report(report_id):
         - explanation_english: simple explanation in English
         """
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4-vision-preview",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{file_media_type};base64,{encoded_file}"
-                            }
-                        }
-                    ]
-                }
+        # Initialize the model 
+        # gemini-1.5-flash is perfect here: it's fast, multimodal, and has a great free tier.
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # Call the API
+        # We pass the prompt and the file bytes together. 
+        # We also enforce strict JSON output via generation_config.
+        response = model.generate_content(
+            [
+                prompt,
+                {"mime_type": file_media_type, "data": file_bytes}
             ],
-            max_tokens=2000
+            generation_config={"response_mime_type": "application/json"}
         )
 
-        # Parse AI response
-        ai_content = response.choices[0].message.content
-        # Remove possible markdown code fences
-        if '```' in ai_content:
-            ai_content = ai_content.split('```')[1]
-            if ai_content.startswith('json'):
-                ai_content = ai_content[4:]
-        data = json.loads(ai_content)
+        # Parse the guaranteed JSON response directly
+        data = json.loads(response.text)
 
         # Save test results
         for item in data:
             TestResult.objects.create(
                 report=report,
-                test_name=item['test_name'],
-                value=item['value'],
+                test_name=item.get('test_name', 'Unknown'),
+                value=item.get('value', ''),
                 unit=item.get('unit', ''),
                 reference_range=item.get('reference_range', ''),
                 is_abnormal=item.get('is_abnormal', False),
@@ -87,6 +76,7 @@ def process_lab_report(report_id):
         pass
     except Exception as e:
         # Mark report as failed and store the error
+        print(f"\n--- GEMINI PROCESSING ERROR ---\n{str(e)}\n-------------------------------\n")
         try:
             report = LabReport.objects.get(id=report_id)
             report.status = LabReport.Status.FAILED
