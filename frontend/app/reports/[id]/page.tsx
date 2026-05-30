@@ -38,7 +38,7 @@ export default function ReportDetailPage() {
     id ? `/reports/${id}/` : null,
     fetcher,
     {
-      // Only poll every 3 seconds IF the status is pending or processing
+     
       refreshInterval: (data) =>
         data?.status === 'pending' || data?.status === 'processing' ? 3000 : 0,
     }
