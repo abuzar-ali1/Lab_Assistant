@@ -13,9 +13,8 @@ class LabReportUploadView(APIView):
         serializer = LabReportUploadSerializer(data=request.data)
         if serializer.is_valid():
             report = serializer.save(user=request.user)
-            # Start AI processing asynchronously (will be implemented in services.py)
-            # For now you can trigger it directly or use a background task
-            process_lab_report.delay(report.id)  # if using Celery, or just call synchronously
+            
+            process_lab_report(report.id)
             return Response(LabReportSerializer(report).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
