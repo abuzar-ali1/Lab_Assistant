@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import GoogleSignIn from '@/Components/GoogleSignIn';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -146,8 +145,7 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Google Sign In */}
-          <GoogleSignIn />
+  
         </motion.form>
 
         {/* Sign Up Link */}
