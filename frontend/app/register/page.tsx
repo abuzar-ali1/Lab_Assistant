@@ -41,7 +41,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/auth/register/', formData);
+      await api.post('/api/register/', formData);
       toast.success('Registration successful! Please log in.');
       router.push('/login');
     } catch (error: any) {

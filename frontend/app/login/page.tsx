@@ -19,7 +19,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/login/', { email, password });
+      const { data } = await api.post('/api/login/', { email, password });
       localStorage.setItem('access_token', data.access);
       localStorage.setItem('refresh_token', data.refresh);
       toast.success('Login successful!');
