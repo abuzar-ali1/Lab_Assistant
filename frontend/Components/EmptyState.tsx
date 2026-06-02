@@ -7,31 +7,39 @@ import Link from 'next/link';
 export default function EmptyState() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="text-center py-16 px-6"
+      transition={{ duration: 0.4 }}
+      className="text-center py-16 px-4 bg-white rounded-2xl border border-neutral-200/60 shadow-sm max-w-xl mx-auto"
     >
-      <motion.div
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="w-20 h-20 bg-gradient-to-r from-teal-200 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-6"
-      >
-        <Upload className="w-10 h-10 text-teal-600" />
-      </motion.div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">No Reports Yet</h3>
-      <p className="text-gray-600 mb-8 max-w-md mx-auto">
-        Upload your first lab report to get started. Our AI will analyze it and explain every value in plain Urdu & English.
+      <div className="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center">
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.0, 0.3] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute inset-0 bg-indigo-100 rounded-2xl"
+        />
+        <div className="relative w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+          <Upload className="w-5 h-5" />
+        </div>
+      </div>
+
+      <h3 className="text-lg font-bold text-neutral-900 tracking-tight">No laboratory diagnostics tracked</h3>
+      <p className="text-neutral-500 text-sm mt-1.5 max-w-sm mx-auto leading-relaxed">
+        Upload your first clinical data sheet. Our localized LLMs unpack values into clean structural breakdowns with translation parameters.
       </p>
-      <Link href="/upload">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl"
-        >
-          Upload Your First Report
-          <ArrowRight className="w-5 h-5" />
-        </motion.button>
-      </Link>
+
+      <div className="mt-6">
+        <Link href="/upload">
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-colors"
+          >
+            Drop First Report Here
+            <ArrowRight className="w-3.5 h-3.5" />
+          </motion.button>
+        </Link>
+      </div>
     </motion.div>
   );
 }

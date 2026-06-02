@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import api from '@/lib/api';
 import Link from 'next/link';
-import { Upload, Clock, AlertCircle, ChevronRight } from 'lucide-react';
+import { Upload, Clock, AlertTriangle, ChevronRight, Layers } from 'lucide-react';
 import EmptyState from '@/Components/EmptyState';
 import ReportCard from '@/Components/ReportCard';
 import StatCard from '@/Components/StatCard';
@@ -48,102 +48,93 @@ export default function DashboardPage() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
+      transition: { staggerChildren: 0.06 }
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 16 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
+      transition: { type: 'spring', stiffness: 120, damping: 18 },
     },
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-slate-100 pt-20 pb-12">
+      <div className="min-h-screen bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] bg-neutral-50/60 pt-24 pb-16">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
         >
-          {/* Hero Section */}
-          <motion.div variants={itemVariants} className="mb-12">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent mb-2">
-                  LabSaathi Dashboard
-                </h1>
-                <p className="text-gray-600 text-lg">
-                  Understand your health reports in plain {' '}
-                  <span className="font-semibold text-teal-600">Urdu & English</span>
-                </p>
-              </div>
-              <Link href="/upload">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl group"
-                >
-                  <Upload className="w-5 h-5 group-hover:animate-bounce" />
-                  Upload Report
-                </motion.button>
-              </Link>
+          {/* Dashboard Header */}
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 pb-6 border-b border-neutral-200/60">
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
+                Analysis Workspace
+              </h1>
+              <p className="text-neutral-500 mt-1.5 text-sm sm:text-base">
+                AI powered multi-lingual laboratory tracking • <span className="font-semibold text-indigo-600">Urdu & English</span>
+              </p>
             </div>
+            <Link href="/upload">
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center justify-center gap-2 bg-neutral-900 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-neutral-800 transition-all text-sm w-full sm:w-auto"
+              >
+                <Upload className="w-4 h-4" />
+                Upload New Report
+              </motion.button>
+            </Link>
           </motion.div>
 
-          {/* Stats Section */}
-          <motion.div
-            variants={itemVariants}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
-          >
+          {/* Core Analytics Cards */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
             <StatCard
-              icon={<Upload className="w-6 h-6" />}
-              label="Total Reports"
+              icon={<Layers className="w-5 h-5 text-indigo-600" />}
+              label="Processed Invoices"
               value={stats.total}
-              color="teal"
+              color="indigo"
             />
             <StatCard
-              icon={<AlertCircle className="w-6 h-6" />}
-              label="Abnormal Findings"
+              icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+              label="Abnormal Outliers"
               value={stats.abnormal}
-              color="red"
+              color="rose"
             />
             <StatCard
-              icon={<Clock className="w-6 h-6" />}
-              label="Last Upload"
-              value={stats.recent ? new Date(stats.recent.created_at).toLocaleDateString() : 'N/A'}
-              color="blue"
+              icon={<Clock className="w-5 h-5 text-amber-600" />}
+              label="Last Evaluation"
+              value={stats.recent ? new Date(stats.recent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'None'}
+              color="amber"
             />
           </motion.div>
 
-          {/* Reports Section */}
-          <motion.div variants={itemVariants}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Your Reports</h2>
+          {/* Documents Content Grid */}
+          <motion.div variants={itemVariants} className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-lg font-bold text-neutral-900">Recent Health Stream</h2>
               {reports.length > 0 && (
-                <Link href="/reports" className="flex items-center gap-1 text-teal-600 hover:text-teal-700 font-semibold">
-                  View All <ChevronRight className="w-4 h-4" />
+                <Link href="/reports" className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+                  View full index <ChevronRight className="w-4 h-4" />
                 </Link>
               )}
             </div>
 
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-white h-24 rounded-xl animate-pulse" />
+                  <div key={i} className="bg-white border border-neutral-200/60 h-20 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : reports.length === 0 ? (
               <EmptyState />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {reports.slice(0, 5).map((report, idx) => (
                   <motion.div
                     key={report.id}

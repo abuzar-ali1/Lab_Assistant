@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, LogOut, User, Settings, Bell, Search, ChevronDown, MoreVertical } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Bell, ChevronDown, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
@@ -67,355 +67,187 @@ export default function Navbar() {
 
   const userInitials = user
     ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`
-      .toUpperCase()
-      .substring(0, 2) || user.username[0].toUpperCase()
+        .toUpperCase()
+        .substring(0, 2) || user.username[0].toUpperCase()
     : '';
-
-  const profileMenuVariants = {
-    hidden: { opacity: 0, y: -10, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.2, ease: 'easeOut' },
-    },
-    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } },
-  };
 
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 z-50 shadow-sm"
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-neutral-200/50"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Left: Logo */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-r from-teal-600 to-emerald-500 rounded-lg shadow-md flex items-center justify-center">
-                <span className="text-white font-bold text-lg">⚕️</span>
+          {/* Logo */}
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200">
+                <Activity className="w-5 h-5 text-white transition-transform group-hover:rotate-12" />
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-teal-600 to-emerald-500 bg-clip-text text-transparent hidden sm:inline">
+              <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-neutral-900 to-neutral-700 bg-clip-text text-transparent">
                 LabSaathi
               </span>
             </Link>
           </motion.div>
 
-          {/* Center: Desktop Navigation */}
+          {/* Desktop Navigation */}
           {isAuthenticated && (
-            <div className="hidden md:flex items-center gap-1">
-              <NavLink href="/upload" icon="📤" label="Upload" />
-              <NavLink href="/reports" icon="📋" label="Reports" />
-              <NavLink href="/trends" icon="📈" label="Trends" />
+            <div className="hidden md:flex items-center gap-1 bg-neutral-100/80 p-1 rounded-xl border border-neutral-200/30">
+              <NavLink href="/upload" label="Upload" />
+              <NavLink href="/reports" label="Reports" />
+              <NavLink href="/trends" label="Trends" />
             </div>
           )}
 
-          {/* Right: Auth & Profile */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          {/* Right Section */}
+          <div className="flex items-center gap-4">
             {!loading && (
               <>
                 {isAuthenticated ? (
                   <>
-                    {/* Notifications - Desktop */}
                     <motion.button
-                      whileHover={{ scale: 1.1 }}
+                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition relative"
+                      className="hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-600 hover:bg-neutral-200/70 transition-colors relative"
                     >
-                      <Bell className="w-5 h-5 text-gray-600" />
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      <Bell className="w-4 h-4" />
+                      <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-indigo-600 rounded-full" />
                     </motion.button>
 
-                    {/* Profile Dropdown */}
+                    {/* Profile Trigger */}
                     <div className="relative">
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
                         onClick={() => setProfileOpen(!profileOpen)}
-                        className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-teal-50 to-emerald-50 hover:from-teal-100 hover:to-emerald-100 border border-teal-200 hover:border-teal-300 transition"
+                        className="hidden sm:flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200/60 transition-colors"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-teal-600 to-emerald-500 flex items-center justify-center text-white text-sm font-bold">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                           {userInitials}
                         </div>
                         <div className="text-left hidden md:block">
-                          <p className="text-xs text-gray-500">Welcome</p>
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-xs font-medium text-neutral-800 leading-none">
                             {user?.first_name || user?.username}
                           </p>
                         </div>
-                        <ChevronDown
-                          className={`w-4 h-4 text-gray-600 transition ${
-                            profileOpen ? 'rotate-180' : ''
-                          }`}
-                        />
+                        <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform duration-300 ${profileOpen ? 'rotate-180' : ''}`} />
                       </motion.button>
 
-                      {/* Profile Dropdown Menu */}
+                      {/* Dropdown Menu */}
                       <AnimatePresence>
                         {profileOpen && (
                           <motion.div
-                            variants={profileMenuVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                            className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-neutral-200/60 overflow-hidden py-1.5"
                           >
-                            {/* User Info */}
-                            <div className="px-4 py-4 bg-gradient-to-r from-teal-50 to-emerald-50 border-b border-gray-200">
-                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-teal-600 to-emerald-500 flex items-center justify-center text-white font-bold text-lg">
-                                  {userInitials}
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-semibold text-gray-900">
-                                    {user?.first_name} {user?.last_name}
-                                  </p>
-                                  <p className="text-xs text-gray-500">{user?.email}</p>
-                                </div>
-                              </div>
+                            <div className="px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
+                              <p className="font-semibold text-neutral-900 text-sm">{user?.first_name} {user?.last_name}</p>
+                              <p className="text-xs text-neutral-500 truncate mt-0.5">{user?.email}</p>
                             </div>
-
-                            {/* Menu Items */}
-                            <div className="py-2">
-                              <ProfileMenuItem
-                                icon={<User className="w-4 h-4" />}
-                                label="My Profile"
-                                href="/profile"
-                                onClick={() => setProfileOpen(false)}
-                              />
-                              <ProfileMenuItem
-                                icon={<Settings className="w-4 h-4" />}
-                                label="Settings"
-                                href="/settings"
-                                onClick={() => setProfileOpen(false)}
-                              />
-                              <div className="h-px bg-gray-200 my-2" />
-                              <button
-                                onClick={handleLogout}
-                                className="w-full px-4 py-2.5 flex items-center gap-3 text-red-600 hover:bg-red-50 transition text-sm font-medium"
-                              >
-                                <LogOut className="w-4 h-4" />
-                                Logout
-                              </button>
-                            </div>
+                            <ProfileMenuItem icon={<User className="w-4 h-4" />} label="My Profile" href="/profile" onClick={() => setProfileOpen(false)} />
+                            <ProfileMenuItem icon={<Settings className="w-4 h-4" />} label="Settings" href="/settings" onClick={() => setProfileOpen(false)} />
+                            <div className="h-px bg-neutral-200/60 my-1" />
+                            <button
+                              onClick={handleLogout}
+                              className="w-full px-4 py-2 flex items-center gap-3 text-rose-600 hover:bg-rose-50 transition-colors text-sm font-medium"
+                            >
+                              <LogOut className="w-4 h-4" />
+                              Logout
+                            </button>
                           </motion.div>
                         )}
                       </AnimatePresence>
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <motion.button
-                      whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setMobileOpen(!mobileOpen)}
-                      className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                      className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-600"
                     >
-                      {mobileOpen ? (
-                        <X className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <Menu className="w-5 h-5 text-gray-600" />
-                      )}
+                      {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </motion.button>
                   </>
                 ) : (
-                  <>
-                    {/* Login/Register Buttons - Desktop */}
-                    <div className="hidden sm:flex items-center gap-3">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => router.push('/login')}
-                        className="px-4 py-2 rounded-lg text-teal-600 font-semibold hover:bg-teal-50 transition"
-                      >
-                        Sign In
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => router.push('/register')}
-                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-500 text-white font-semibold hover:shadow-lg transition"
-                      >
-                        Sign Up
-                      </motion.button>
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setMobileOpen(!mobileOpen)}
-                      className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
-                    >
-                      {mobileOpen ? (
-                        <X className="w-5 h-5 text-gray-600" />
-                      ) : (
-                        <Menu className="w-5 h-5 text-gray-600" />
-                      )}
-                    </motion.button>
-                  </>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <button onClick={() => router.push('/login')} className="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+                      Sign In
+                    </button>
+                    <button onClick={() => router.push('/register')} className="px-4 py-2 text-sm font-medium bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 transition-colors shadow-sm">
+                      Sign Up
+                    </button>
+                  </div>
                 )}
               </>
             )}
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="md:hidden border-t border-gray-200 bg-gray-50"
-            >
-              <div className="px-4 py-4 space-y-2">
-                {isAuthenticated ? (
-                  <>
-                    {/* Mobile User Info */}
-                    <div className="px-3 py-3 bg-white rounded-lg mb-2 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-600 to-emerald-500 flex items-center justify-center text-white font-bold">
-                        {userInitials}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {user?.first_name || user?.username}
-                        </p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
-                    </div>
-
-                    {/* Mobile Navigation */}
-                    <MobileNavLink href="/upload" icon="📤" label="Upload Report" onClick={() => setMobileOpen(false)} />
-                    <MobileNavLink href="/reports" icon="📋" label="My Reports" onClick={() => setMobileOpen(false)} />
-                    <MobileNavLink href="/trends" icon="📈" label="Health Trends" onClick={() => setMobileOpen(false)} />
-                    <MobileNavLink href="/profile" icon="👤" label="My Profile" onClick={() => setMobileOpen(false)} />
-                    <MobileNavLink href="/settings" icon="⚙️" label="Settings" onClick={() => setMobileOpen(false)} />
-
-                    <div className="h-px bg-gray-200 my-2" />
-
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        handleLogout();
-                        setMobileOpen(false);
-                      }}
-                      className="w-full px-3 py-2.5 rounded-lg bg-red-100 text-red-700 font-semibold hover:bg-red-200 transition flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </motion.button>
-                  </>
-                ) : (
-                  <>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        router.push('/login');
-                        setMobileOpen(false);
-                      }}
-                      className="w-full px-4 py-2.5 rounded-lg text-teal-600 font-semibold hover:bg-teal-50 transition border border-teal-200"
-                    >
-                      Sign In
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        router.push('/register');
-                        setMobileOpen(false);
-                      }}
-                      className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-500 text-white font-semibold hover:shadow-lg transition"
-                    >
-                      Sign Up
-                    </motion.button>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden border-t border-neutral-200 bg-white overflow-hidden shadow-inner"
+          >
+            <div className="px-4 py-4 space-y-1.5">
+              {isAuthenticated ? (
+                <>
+                  <MobileNavLink href="/upload" label="Upload Report" onClick={() => setMobileOpen(false)} />
+                  <MobileNavLink href="/reports" label="My Reports" onClick={() => setMobileOpen(false)} />
+                  <MobileNavLink href="/trends" label="Health Trends" onClick={() => setMobileOpen(false)} />
+                  <div className="h-px bg-neutral-100 my-2" />
+                  <button
+                    onClick={() => { handleLogout(); setMobileOpen(false); }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-rose-50 text-rose-600 text-sm font-semibold flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button onClick={() => { router.push('/login'); setMobileOpen(false); }} className="px-4 py-2.5 rounded-xl text-neutral-700 font-medium bg-neutral-50 border border-neutral-200 text-center text-sm">Sign In</button>
+                  <button onClick={() => { router.push('/register'); setMobileOpen(false); }} className="px-4 py-2.5 rounded-xl text-white font-medium bg-indigo-600 text-center text-sm">Sign Up</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
 
-// Helper Components
-function NavLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: string;
-  label: string;
-}) {
+function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link href={href}>
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition font-medium flex items-center gap-2 cursor-pointer"
-      >
-        <span>{icon}</span>
-        <span>{label}</span>
-      </motion.div>
-    </Link>
-  );
-}
-
-function ProfileMenuItem({
-  icon,
-  label,
-  href,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  href: string;
-  onClick: () => void;
-}) {
-  return (
-    <Link href={href}>
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onClick}
-        className="w-full px-4 py-2.5 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition text-sm font-medium"
-      >
-        <span className="text-gray-600">{icon}</span>
+      <span className="px-4 py-1.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-white transition-all cursor-pointer block inline-flex items-center">
         {label}
-      </motion.button>
+      </span>
     </Link>
   );
 }
 
-function MobileNavLink({
-  href,
-  icon,
-  label,
-  onClick,
-}: {
-  href: string;
-  icon: string;
-  label: string;
-  onClick: () => void;
-}) {
+function ProfileMenuItem({ icon, label, href, onClick }: { icon: React.ReactNode; label: string; href: string; onClick: () => void }) {
   return (
-    <Link href={href}>
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onClick}
-        className="px-3 py-2.5 rounded-lg text-gray-700 hover:bg-white transition font-medium flex items-center gap-3 cursor-pointer"
-      >
-        <span className="text-lg">{icon}</span>
-        <span>{label}</span>
-      </motion.div>
+    <Link href={href} onClick={onClick} className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors font-medium">
+      <span className="text-neutral-400">{icon}</span>
+      {label}
+    </Link>
+  );
+}
+
+function MobileNavLink({ href, label, onClick }: { href: string; label: string; onClick: () => void }) {
+  return (
+    <Link href={href} onClick={onClick} className="block px-4 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors">
+      {label}
     </Link>
   );
 }
