@@ -1,1 +1,15 @@
 # reports/urls.py
+from django.urls import path
+from .views import (
+    LabReportUploadView,
+    LabReportDetailView,
+    LabReportListView,
+    
+)
+
+urlpatterns = [
+    path('upload/', LabReportUploadView.as_view(), name='report-upload'),
+    path('', LabReportListView.as_view(), name='report-list'),
+    path('<int:report_id>/', LabReportDetailView.as_view(), name='report-detail'),
+   
+]
