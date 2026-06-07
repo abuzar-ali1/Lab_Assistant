@@ -1,12 +1,4 @@
-import os
-import json
-import time
-import google.generativeai as genai
-from django.conf import settings
-from django.utils import timezone
-from .models import LabReport, TestResult
-from dotenv import load_dotenv
-import logging
+
 
 logger = logging.getLogger(__name__)
 
