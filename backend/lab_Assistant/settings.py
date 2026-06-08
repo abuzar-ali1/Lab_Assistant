@@ -84,8 +84,6 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -137,8 +135,8 @@ if USE_R2_STORAGE:
     AWS_S3_ENDPOINT_URL = os.getenv('CLOUDFLARE_ENDPOINT_URL')
     
     # R2 specific settings
-    AWS_S3_REGION_NAME = 'auto'  # R2 uses 'auto'
-    AWS_S3_ADDRESSING_STYLE = 'virtual'  # Use virtual-hosted-style URLs
+    AWS_S3_REGION_NAME = 'auto'  
+    AWS_S3_ADDRESSING_STYLE = 'virtual'  
     AWS_QUERYSTRING_AUTH = True  # Use query string for auth (signed URLs)
     AWS_QUERYSTRING_EXPIRE = 3600  # URLs valid for 1 hour
     AWS_DEFAULT_ACL = 'private'  # Keep files private by default
