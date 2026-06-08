@@ -137,9 +137,9 @@ if USE_R2_STORAGE:
     # R2 specific settings
     AWS_S3_REGION_NAME = 'auto'  
     AWS_S3_ADDRESSING_STYLE = 'virtual'  
-    AWS_QUERYSTRING_AUTH = True  # Use query string for auth (signed URLs)
-    AWS_QUERYSTRING_EXPIRE = 3600  # URLs valid for 1 hour
-    AWS_DEFAULT_ACL = 'private'  # Keep files private by default
+    AWS_QUERYSTRING_AUTH = True 
+    AWS_QUERYSTRING_EXPIRE = 3600  
+    AWS_DEFAULT_ACL = 'private' 
     
     # S3 object parameters
     AWS_S3_OBJECT_PARAMETERS = {
