@@ -133,14 +133,12 @@ if USE_R2_STORAGE:
     
     AWS_S3_ENDPOINT_URL = os.getenv('CLOUDFLARE_ENDPOINT_URL')
     
-    # R2 specific settings
     AWS_S3_REGION_NAME = 'auto'  
     AWS_S3_ADDRESSING_STYLE = 'virtual'  
     AWS_QUERYSTRING_AUTH = True 
     AWS_QUERYSTRING_EXPIRE = 3600  
     AWS_DEFAULT_ACL = 'private' 
     
-    # S3 object parameters
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',  # Cache for 1 day
     }
