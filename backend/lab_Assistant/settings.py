@@ -131,7 +131,6 @@ if USE_R2_STORAGE:
     AWS_SECRET_ACCESS_KEY = os.getenv('CLOUDFLARE_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('CLOUDFLARE_BUCKET_NAME')
     
-    # R2 Endpoint (different from S3)
     AWS_S3_ENDPOINT_URL = os.getenv('CLOUDFLARE_ENDPOINT_URL')
     
     # R2 specific settings
