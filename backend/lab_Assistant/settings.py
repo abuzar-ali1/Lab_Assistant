@@ -140,7 +140,7 @@ if USE_R2_STORAGE:
     AWS_DEFAULT_ACL = 'private' 
     
     AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',  # Cache for 1 day
+        'CacheControl': 'max-age=86400',  
     }
     
     # Use R2 for media uploads
