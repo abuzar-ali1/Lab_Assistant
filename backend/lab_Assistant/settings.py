@@ -4,6 +4,7 @@ Django settings for lab_Assistant project.
 
 from pathlib import Path
 import os
+from urllib.parse import parse_qsl, urlparse
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -66,20 +67,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'lab_Assistant.wsgi.application'
 
-
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 # Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATA_BASE_URL'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-        }
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
+        'PORT': 5432,
+        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
+
+
+
     }
 }
 
@@ -156,7 +157,12 @@ else:
 # File Upload Settings
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
-FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR, 'tmp')
+
+# Only use a local temp upload dir when not using cloud storage.
+# When using Cloudflare R2, Django will fall back to the OS temp directory.
+if not USE_R2_STORAGE:
+    FILE_UPLOAD_TEMP_DIR = os.path.join(BASE_DIR, 'tmp')
+    os.makedirs(FILE_UPLOAD_TEMP_DIR, exist_ok=True)
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
