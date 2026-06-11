@@ -14,8 +14,8 @@ urlpatterns = [
     path('api/reports/', LabReportListView.as_view(), name='report_list'),
     
     # Get report detail
-    path('api/reports/<uuid:report_id>/', LabReportDetailView.as_view(), name='report_detail'),
+    path('api/reports/<int:report_id>/', LabReportDetailView.as_view(), name='report_detail'),
     
     # Delete report
-    path('api/reports/<uuid:report_id>/delete/', LabReportDeleteView.as_view(), name='report_delete'),
+    path('api/reports/<int:report_id>/delete/', LabReportDeleteView.as_view(), name='report_delete'),
 ]

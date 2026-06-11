@@ -37,7 +37,7 @@ class LabReportUploadView(APIView):
         if serializer.is_valid():
             # Save report with authenticated user
             report = serializer.save(user=request.user)
-            logger.info(f"New report uploaded by {request.user.email}: {report.id}")
+            logger.info(f"New report uploaded by {request.user.email}")
             
             # Start processing (for production, use Celery for async)
             process_lab_report(report.id)

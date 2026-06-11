@@ -15,7 +15,6 @@ class LabReport(models.Model):
         COMPLETED = 'completed', 'Completed'
         FAILED = 'failed', 'Failed'
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
