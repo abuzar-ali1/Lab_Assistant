@@ -62,7 +62,7 @@ class LabReport(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     
     # R2 URL (cached for performance)
-    file_url = models.URLField(blank=True, null=True)
+    file_url = models.URLField(blank=True, null=True) 
 
     class Meta:
         ordering = ['-created_at']
