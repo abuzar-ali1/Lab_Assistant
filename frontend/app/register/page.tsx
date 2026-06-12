@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Loader2, ArrowRight, Eye, EyeOff} from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
