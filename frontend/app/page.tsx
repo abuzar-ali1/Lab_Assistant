@@ -61,6 +61,10 @@ export default function DashboardPage() {
     },
   };
 
+  console.log('Fetched reports:', reports);
+ 
+  const slicedReports = reports?.results?.slice(0, 10) || [];         
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] bg-neutral-50/60 pt-24 pb-16">
@@ -135,7 +139,7 @@ export default function DashboardPage() {
               <EmptyState />
             ) : (
               <div className="space-y-3">
-                {reports.slice(0, 5).map((report, idx) => (
+                {slicedReports.map((report, idx) => (
                   <motion.div
                     key={report.id}
                     variants={itemVariants}
