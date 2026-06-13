@@ -87,10 +87,17 @@ class LabReport(models.Model):
     def save(self, *args, **kwargs):
         """Store file metadata"""
         if self.file:
-            self.file_size = self.file.size
-            self.file_mime_type = self.file.content_type or 'application/octet-stream'
+            uploaded = getattr(self.file, 'file', self.file)
+
+            # size: prefer the uploaded object's size, fall back to FieldFile
+            self.file_size = getattr(uploaded, 'size', getattr(self.file, 'size', 0))
+
+            # mime type: try uploaded.content_type, then file.content_type,
+            # then a safe default
+            self.file_mime_type = getattr(uploaded, 'content_type', None) or getattr(self.file, 'content_type', 'application/octet-stream')
+
             if not self.original_filename:
-                self.original_filename = self.file.name
+                self.original_filename = getattr(uploaded, 'name', getattr(self.file, 'name', ''))
         super().save(*args, **kwargs)
 
 
