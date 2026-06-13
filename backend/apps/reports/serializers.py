@@ -67,7 +67,6 @@ class LabReportSerializer(serializers.ModelSerializer):
     """
     abnormal_count = serializers.SerializerMethodField()
     total_tests = serializers.SerializerMethodField()
-    file_size_mb = serializers.SerializerMethodField()
 
     class Meta:
         model = LabReport
@@ -78,7 +77,7 @@ class LabReportSerializer(serializers.ModelSerializer):
             'created_at',
             'abnormal_count',
             'total_tests',
-            'file_size_mb'
+           
         ]
 
     def get_abnormal_count(self, obj):
@@ -89,12 +88,7 @@ class LabReportSerializer(serializers.ModelSerializer):
         """Total number of test results"""
         return obj.test_results.count()
     
-    def get_file_size_mb(self, obj):
-        """Convert bytes to MB"""
-        if obj.file_size:
-            return round(obj.file_size / (1024 * 1024), 2)
-        return 0
-
+  
 
 class LabReportDetailSerializer(serializers.ModelSerializer):
     """
@@ -112,7 +106,7 @@ class LabReportDetailSerializer(serializers.ModelSerializer):
             'original_filename',
             'status',
             'file_url',
-            'file_size_mb',
+          
             'created_at',
             'completed_at',
             'processing_time_seconds',
@@ -126,11 +120,7 @@ class LabReportDetailSerializer(serializers.ModelSerializer):
             return obj.get_file_url()
         return None
     
-    def get_file_size_mb(self, obj):
-        """Convert bytes to MB"""
-        if obj.file_size:
-            return round(obj.file_size / (1024 * 1024), 2)
-        return 0
+   
     
     def get_processing_time_seconds(self, obj):
         """Return processing time in seconds"""

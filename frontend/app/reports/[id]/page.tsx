@@ -35,7 +35,7 @@ export default function ReportDetailPage() {
 
   // SWR automatically handles loading, error, caching, and conditional polling
   const { data: report, error, isLoading } = useSWR<ReportDetail>(
-    id ? `/reports/${id}/` : null,
+    id ? `/api/reports/${id}/` : null,
     fetcher,
     {
      
