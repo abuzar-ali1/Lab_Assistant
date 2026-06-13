@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from google import genai
+import google.generativeai as genai
 from django.conf import settings
 from django.utils import timezone
 from .models import LabReport, TestResult

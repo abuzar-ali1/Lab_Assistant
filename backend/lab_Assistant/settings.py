@@ -34,9 +34,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
-    'storages',  # Add django-storages
+    'storages', 
     'apps.users',
     'apps.reports',
+    'google.generativeai', 
 ]
 
 MIDDLEWARE = [
