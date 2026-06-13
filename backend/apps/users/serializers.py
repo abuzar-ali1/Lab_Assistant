@@ -66,7 +66,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Create user with hashed password"""
-        validated_data.pop('password_confirm')  # Remove confirm field
+        validated_data.pop('password_confirm')  
         user = User.objects.create_user(**validated_data)
         return user
 
