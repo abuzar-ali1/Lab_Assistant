@@ -30,7 +30,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/reports/').then(({ data }) => setReports(data)),
+      api.get('/api/reports/').then(({ data }) => setReports(data)),
     ])
       .catch(console.error)
       .finally(() => setLoading(false));
