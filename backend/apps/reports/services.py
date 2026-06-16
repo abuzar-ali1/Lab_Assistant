@@ -10,11 +10,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Load environment variables 
 env_path = os.path.join(settings.BASE_DIR, '.env')
 load_dotenv(dotenv_path=env_path)
 
-# Configure Gemini API
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
@@ -43,13 +41,12 @@ def process_lab_report(report_id):
         start_time = time.time()
         logger.info(f"Starting processing for report {report_id}")
 
-        # ✅ Read file directly from R2 (streaming)
+       
         with report.file.open('rb') as f:
             file_bytes = f.read()
         
         logger.info(f"Read {len(file_bytes)} bytes from R2")
 
-        # Determine MIME type based on file extension
         file_extension = report.original_filename.lower().split('.')[-1]
         mime_type_map = {
             'pdf': 'application/pdf',
@@ -59,7 +56,6 @@ def process_lab_report(report_id):
         }
         file_media_type = mime_type_map.get(file_extension, 'application/octet-stream')
 
-        # Gemini Prompt for lab report analysis
         prompt = """
         You are a medical lab report explainer for Pakistani patients.
         Your job is to extract and explain every test result from the lab report.
