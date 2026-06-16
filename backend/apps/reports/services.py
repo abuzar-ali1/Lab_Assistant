@@ -15,7 +15,7 @@ env_path = os.path.join(settings.BASE_DIR, '.env')
 load_dotenv(dotenv_path=env_path)
 
 # Configure Gemini API
-genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 def process_lab_report(report_id):
