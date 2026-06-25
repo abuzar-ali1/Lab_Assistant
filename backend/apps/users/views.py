@@ -4,8 +4,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.core.mail import send_mail
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import random
+import string
 
 from .serializers import (
     UserSerializer,
@@ -140,3 +147,104 @@ class ChangePasswordAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoogleLoginAPIView(APIView):
+    """
+    Login or register user using Google OAuth2
+    POST /api/google-login/
+    {
+        "token": "ya29.a0A... (Google Access Token)"
+    }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        import requests
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Fetch user info using the access token
+            user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo"
+            response = requests.get(user_info_url, params={'access_token': token})
+            
+            if not response.ok:
+                return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            idinfo = response.json()
+
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+            
+            # Check if user exists
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                # Create user
+                user = User.objects.create(
+                    email=email,
+                    username=email.split('@')[0] + str(random.randint(1000, 9999)),
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_verified=True
+                )
+                user.set_unusable_password()
+                user.save()
+
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'message': 'Google login successful',
+                'user': UserSerializer(user).data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ForgotPasswordAPIView(APIView):
+    """
+    Forgot Password API
+    POST /api/forgot-password/
+    {
+        "email": "user@example.com"
+    }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            
+            # Generate random 8-character password
+            characters = string.ascii_letters + string.digits + "!@#$%^&*"
+            new_password = ''.join(random.choice(characters) for i in range(10))
+            
+            # Update password
+            user.set_password(new_password)
+            user.save()
+            
+            # Send email
+            send_mail(
+                'Your New LabSaathi Password',
+                f'Hello {user.first_name or user.username},\n\nYour password has been reset.\n\nYour new password is: {new_password}\n\nPlease login and change it immediately.',
+                settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@labsaathi.com',
+                [user.email],
+                fail_silently=False,
+            )
+            
+            return Response({'message': 'New password sent to your email successfully.'}, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            # Return success anyway to prevent email enumeration
+            return Response({'message': 'If an account exists with this email, a new password has been sent.'}, status=status.HTTP_200_OK)

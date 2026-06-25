@@ -231,3 +231,9 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# Email settings for Forgot Password (using console backend for development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Google OAuth2 Settings
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', 'placeholder-google-client-id.apps.googleusercontent.com')
