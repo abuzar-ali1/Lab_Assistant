@@ -7,7 +7,6 @@ import os
 from urllib.parse import parse_qsl, urlparse
 from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables
@@ -236,4 +235,4 @@ LOGGING = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Google OAuth2 Settings
-GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', 'placeholder-google-client-id.apps.googleusercontent.com')
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', 'placeholder-google-client-id.apps.googleusercontent.com')
