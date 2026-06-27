@@ -10,6 +10,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  
 
   const handleUpload = async () => {
     if (!file) return;
