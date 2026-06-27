@@ -4,7 +4,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 const api = axios.create({ baseURL: API_BASE });
 
-// Request interceptor: attach access token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
