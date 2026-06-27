@@ -12,7 +12,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401 and auto‑refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
