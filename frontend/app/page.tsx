@@ -3,18 +3,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Upload, MessageSquare, Activity, User, LogOut, ChevronRight, FileText, BrainCircuit } from 'lucide-react';
+import { Upload, MessageSquare, Activity, User, LogOut, ChevronRight, BrainCircuit } from 'lucide-react';
+import { useAuth } from '@/Context/AuthContext';
 
 export default function HomePage() {
-  // Toggle this state to test the Login vs Profile Card UI
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, logout, loading } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-
-  // Placeholder user data
-  const currentUser = {
-    name: 'AbuZar Ali',
-    email: 'dev.abuzar@example.com'
-  };
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -41,15 +35,15 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            {isLoggedIn ? (
+            {user ? (
               <div className="relative">
                 <button 
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="flex items-center gap-3 hover:bg-neutral-100 p-2 rounded-xl transition-colors"
                 >
                   <div className="text-right hidden sm:block">
-                    <p className="text-sm font-semibold text-neutral-900">{currentUser.name}</p>
-                    <p className="text-xs text-neutral-500">{currentUser.email}</p>
+                    <p className="text-sm font-semibold text-neutral-900">{user.first_name} {user.last_name}</p>
+                    <p className="text-xs text-neutral-500">{user.email}</p>
                   </div>
                   <div className="bg-indigo-100 p-2 rounded-full text-indigo-700">
                     <User className="w-5 h-5" />
@@ -66,14 +60,17 @@ export default function HomePage() {
                       className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden"
                     >
                       <div className="p-4 border-b border-neutral-100 sm:hidden">
-                        <p className="text-sm font-semibold text-neutral-900">{currentUser.name}</p>
-                        <p className="text-xs text-neutral-500 truncate">{currentUser.email}</p>
+                        <p className="text-sm font-semibold text-neutral-900">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-neutral-500 truncate">{user.email}</p>
                       </div>
                       <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors text-sm text-neutral-700 font-medium">
                         <Activity className="w-4 h-4" /> Go to Dashboard
                       </Link>
                       <button 
-                        onClick={() => setIsLoggedIn(false)}
+                        onClick={async () => {
+                          await logout();
+                          setShowProfileMenu(false);
+                        }}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-50 transition-colors text-sm text-rose-600 font-medium"
                       >
                         <LogOut className="w-4 h-4" /> Sign Out
@@ -83,12 +80,13 @@ export default function HomePage() {
                 </AnimatePresence>
               </div>
             ) : (
-              <button 
-                onClick={() => setIsLoggedIn(true)}
-                className="bg-neutral-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-neutral-800 transition-all shadow-sm hover:shadow-md"
-              >
-                Sign In
-              </button>
+              <Link href="/login">
+                <button 
+                  className="bg-neutral-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-neutral-800 transition-all shadow-sm hover:shadow-md"
+                >
+                  Sign In
+                </button>
+              </Link>
             )}
           </div>
         </div>
@@ -116,7 +114,7 @@ export default function HomePage() {
           </motion.p>
 
           <motion.div variants={fadeInUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+            <Link href={user ? "/dashboard" : "/login"}>
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
