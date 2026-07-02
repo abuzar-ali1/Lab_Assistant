@@ -1,6 +1,13 @@
 import os
+from urllib.parse import urlparse
 from storages.backends.s3boto3 import S3Boto3Storage
 from django.conf import settings
+
+def get_custom_domain():
+    endpoint = os.getenv('CLOUDFLARE_ENDPOINT_URL', '')
+    if endpoint:
+        return urlparse(endpoint).netloc
+    return None
 
 class R2Storage(S3Boto3Storage):
     """
@@ -10,7 +17,7 @@ class R2Storage(S3Boto3Storage):
     location = 'lab-reports'  # Subfolder in bucket
     default_acl = 'private'   # Private files by default
     file_overwrite = False    # Keep all file versions
-    custom_domain = os.getenv('CLOUDFLARE_ENDPOINT_URL')
+    custom_domain = get_custom_domain()
 
     def __init__(self, *args, **kwargs):
         # Cloudflare R2 endpoint

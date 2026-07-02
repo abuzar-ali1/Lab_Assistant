@@ -147,11 +147,26 @@ if USE_R2_STORAGE:
     }
     
     # Use R2 for media uploads
-    DEFAULT_FILE_STORAGE = 'lab_Assistant.storage.R2Storage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "lab_Assistant.storage.R2Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
     MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/lab-reports/"
     
 else:
     # Local storage for development
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
