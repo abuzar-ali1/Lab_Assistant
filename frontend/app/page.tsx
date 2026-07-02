@@ -1,158 +1,176 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import ProtectedRoute from '@/Components/ProtectedRoute';
-import api from '@/lib/api';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Upload, Clock, AlertTriangle, ChevronRight, Layers } from 'lucide-react';
-import EmptyState from '@/Components/EmptyState';
-import ReportCard from '@/Components/ReportCard';
-import StatCard from '@/Components/StatCard';
+import { Upload, MessageSquare, Activity, User, LogOut, ChevronRight, FileText, BrainCircuit } from 'lucide-react';
 
-interface ReportSummary {
-  id: number;
-  original_filename: string;
-  status: string;
-  created_at: string;
-  abnormal_count: number;
-  total_tests: number;
-}
+export default function HomePage() {
+  // Toggle this state to test the Login vs Profile Card UI
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-export default function DashboardPage() {
-  const [reports, setReports] = useState<ReportSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total: 0,
-    abnormal: 0,
-    recent: null as any,
-  });
+  // Placeholder user data
+  const currentUser = {
+    name: 'AbuZar Ali',
+    email: 'dev.abuzar@example.com'
+  };
 
-  useEffect(() => {
-    Promise.all([
-      api.get('/api/reports/').then(({ data }) => setReports(data)),
-    ])
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  };
 
-  useEffect(() => {
-    if (reports.length > 0) {
-      const totalAbnormal = reports.reduce((sum, r) => sum + r.abnormal_count, 0);
-      const recent = reports[0];
-      setStats({ total: reports.length, abnormal: totalAbnormal, recent });
-    }
-  }, [reports]);
-
-  const containerVariants = {
+  const staggerContainer = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.06 }
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring', stiffness: 120, damping: 18 },
-    },
-  };
-
-  console.log('Fetched reports:', reports);
- 
-  const slicedReports = reports?.results?.slice(0, 10) || [];         
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] bg-neutral-50/60 pt-24 pb-16">
-        <motion.div
+    <div className="min-h-screen bg-neutral-50 selection:bg-indigo-100 selection:text-indigo-900">
+      {/* Navigation Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-600 p-2 rounded-lg">
+              <Activity className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-neutral-900">
+              Lab Assistant AI
+            </span>
+          </div>
+
+          <div className="relative">
+            {isLoggedIn ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-3 hover:bg-neutral-100 p-2 rounded-xl transition-colors"
+                >
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-semibold text-neutral-900">{currentUser.name}</p>
+                    <p className="text-xs text-neutral-500">{currentUser.email}</p>
+                  </div>
+                  <div className="bg-indigo-100 p-2 rounded-full text-indigo-700">
+                    <User className="w-5 h-5" />
+                  </div>
+                </button>
+
+                {/* Profile Dropdown */}
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden"
+                    >
+                      <div className="p-4 border-b border-neutral-100 sm:hidden">
+                        <p className="text-sm font-semibold text-neutral-900">{currentUser.name}</p>
+                        <p className="text-xs text-neutral-500 truncate">{currentUser.email}</p>
+                      </div>
+                      <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors text-sm text-neutral-700 font-medium">
+                        <Activity className="w-4 h-4" /> Go to Dashboard
+                      </Link>
+                      <button 
+                        onClick={() => setIsLoggedIn(false)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-50 transition-colors text-sm text-rose-600 font-medium"
+                      >
+                        <LogOut className="w-4 h-4" /> Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsLoggedIn(true)}
+                className="bg-neutral-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-neutral-800 transition-all shadow-sm hover:shadow-md"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        <motion.div 
           initial="hidden"
           animate="visible"
-          variants={containerVariants}
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          className="text-center max-w-4xl mx-auto"
         >
-          {/* Dashboard Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 pb-6 border-b border-neutral-200/60">
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
-                Analysis Workspace
-              </h1>
-              <p className="text-neutral-500 mt-1.5 text-sm sm:text-base">
-                AI powered multi-lingual laboratory tracking • <span className="font-semibold text-indigo-600">Urdu & English</span>
-              </p>
-            </div>
-            <Link href="/upload">
-              <motion.button
-                whileHover={{ y: -2 }}
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-medium mb-8">
+            <span className="flex h-2 w-2 rounded-full bg-indigo-500"></span>
+            Open Source Medical AI
+          </motion.div>
+          
+          <motion.h1 variants={fadeInUp} className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-neutral-900 tracking-tight leading-[1.1]">
+            Understand your medical reports <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">instantly.</span>
+          </motion.h1>
+          
+          <motion.p variants={fadeInUp} className="mt-6 text-lg sm:text-xl text-neutral-500 max-w-2xl mx-auto leading-relaxed">
+            Upload your lab results and let our AI translate complex medical jargon into simple language. Ask questions and get answers based strictly on your personal report.
+          </motion.p>
+
+          <motion.div variants={fadeInUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href={isLoggedIn ? "/dashboard" : "/login"}>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center gap-2 bg-neutral-900 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-neutral-800 transition-all text-sm w-full sm:w-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all"
               >
-                <Upload className="w-4 h-4" />
-                Upload New Report
+                Analyze a Report <ChevronRight className="w-5 h-5" />
               </motion.button>
             </Link>
-          </motion.div>
-
-          {/* Core Analytics Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-            <StatCard
-              icon={<Layers className="w-5 h-5 text-indigo-600" />}
-              label="Processed Invoices"
-              value={stats.total}
-              color="indigo"
-            />
-            <StatCard
-              icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
-              label="Abnormal Outliers"
-              value={stats.abnormal}
-              color="rose"
-            />
-            <StatCard
-              icon={<Clock className="w-5 h-5 text-amber-600" />}
-              label="Last Evaluation"
-              value={stats.recent ? new Date(stats.recent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'None'}
-              color="amber"
-            />
-          </motion.div>
-
-          {/* Documents Content Grid */}
-          <motion.div variants={itemVariants} className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-lg font-bold text-neutral-900">Recent Health Stream</h2>
-              {reports.length > 0 && (
-                <Link href="/reports" className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                  View full index <ChevronRight className="w-4 h-4" />
-                </Link>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-white border border-neutral-200/60 h-20 rounded-2xl animate-pulse" />
-                ))}
-              </div>
-            ) : reports.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="space-y-3">
-                {slicedReports.map((report, idx) => (
-                  <motion.div
-                    key={report.id}
-                    variants={itemVariants}
-                    custom={idx}
-                  >
-                    <ReportCard report={report} />
-                  </motion.div>
-                ))}
-              </div>
-            )}
+            <p className="text-sm text-neutral-400 font-medium px-4">Fully localized in English & Roman Urdu</p>
           </motion.div>
         </motion.div>
-      </div>
-    </ProtectedRoute>
+
+        {/* How it Works - Animated Cards */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
+          className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8"
+        >
+          {/* Step 1 */}
+          <motion.div variants={fadeInUp} className="relative p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm hover:shadow-xl transition-shadow duration-300">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6">
+              <Upload className="w-7 h-7 text-indigo-600" />
+            </div>
+            <h3 className="text-xl font-bold text-neutral-900 mb-3">1. Upload Report</h3>
+            <p className="text-neutral-500 leading-relaxed">
+              Take a photo of your medical lab report or upload a PDF. Our secure pipeline instantly reads the text using advanced OCR.
+            </p>
+          </motion.div>
+
+          {/* Step 2 */}
+          <motion.div variants={fadeInUp} className="relative p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm hover:shadow-xl transition-shadow duration-300">
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mb-6">
+              <BrainCircuit className="w-7 h-7 text-violet-600" />
+            </div>
+            <h3 className="text-xl font-bold text-neutral-900 mb-3">2. AI Processing</h3>
+            <p className="text-neutral-500 leading-relaxed">
+              The AI analyzes your specific values against standard medical ranges, highlighting if anything is out of bounds or dangerous.
+            </p>
+          </motion.div>
+
+          {/* Step 3 */}
+          <motion.div variants={fadeInUp} className="relative p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm hover:shadow-xl transition-shadow duration-300">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
+              <MessageSquare className="w-7 h-7 text-emerald-600" />
+            </div>
+            <h3 className="text-xl font-bold text-neutral-900 mb-3">3. Contextual Chat</h3>
+            <p className="text-neutral-500 leading-relaxed">
+              Have a conversation with the AI. Ask questions like "What does low Hemoglobin mean?" and get answers tailored strictly to your uploaded document.
+            </p>
+          </motion.div>
+        </motion.div>
+      </main>
+    </div>
   );
 }
