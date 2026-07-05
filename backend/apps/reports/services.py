@@ -90,7 +90,7 @@ def process_lab_report(report_id):
 
         logger.info(f"Sending {file_media_type} to Gemini for analysis")
 
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-3.5-flash')
         response = model.generate_content(
             [
                 prompt,
