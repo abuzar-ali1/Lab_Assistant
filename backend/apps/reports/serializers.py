@@ -4,12 +4,29 @@ from .models import LabReport, TestResult
 
 class LabReportUploadSerializer(serializers.ModelSerializer):
     """
-    Serializer for file upload
-    Validates file size and type
+    Serializer for file upload.
+    Accepts either the standard field name 'file' or the frontend alias 'report_file'.
     """
+    file = serializers.FileField(required=False, write_only=True)
+    report_file = serializers.FileField(required=False, write_only=True)
+
     class Meta:
         model = LabReport
-        fields = ['file']
+        fields = ['file', 'report_file']
+
+    def validate(self, attrs):
+        incoming_file = attrs.get('file')
+        alias_file = attrs.get('report_file')
+
+        if incoming_file is None and alias_file is not None:
+            attrs['file'] = alias_file
+
+        attrs.pop('report_file', None)
+
+        if attrs.get('file') is None:
+            raise serializers.ValidationError({'file': ['No file was submitted.']})
+
+        return attrs
 
     def validate_file(self, value):
         """

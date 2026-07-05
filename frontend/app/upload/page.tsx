@@ -3,10 +3,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, FileText, X, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { UploadCloud, FileText, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-// Note: If you removed ProtectedRoute for the stateless version, you can remove this import
-// import ProtectedRoute from '@/Components/ProtectedRoute'; 
+import api from '@/lib/api'; // Your Axios instance
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,6 +15,19 @@ export default function UploadPage() {
   const router = useRouter();
 
   // Handle Drag & Drop Events
+  const validateAndSetFile = useCallback((selectedFile: File) => {
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(selectedFile.type)) {
+      setError('Please upload a valid Image (JPG, PNG) or PDF file.');
+      return;
+    }
+    if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
+      setError('File size must be less than 10MB.');
+      return;
+    }
+    setFile(selectedFile);
+  }, []);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -32,26 +44,15 @@ export default function UploadPage() {
     setError('');
     
     const droppedFile = e.dataTransfer.files[0];
-    validateAndSetFile(droppedFile);
-  }, []);
+    if (droppedFile) {
+      validateAndSetFile(droppedFile);
+    }
+  }, [validateAndSetFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError('');
     const selectedFile = e.target.files?.[0];
     if (selectedFile) validateAndSetFile(selectedFile);
-  };
-
-  const validateAndSetFile = (selectedFile: File) => {
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!validTypes.includes(selectedFile.type)) {
-      setError('Please upload a valid Image (JPG, PNG) or PDF file.');
-      return;
-    }
-    if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
-      setError('File size must be less than 10MB.');
-      return;
-    }
-    setFile(selectedFile);
   };
 
   const clearFile = () => {
@@ -68,27 +69,24 @@ export default function UploadPage() {
     formData.append('file', file);
 
     try {
-      // For pure stateless, we send the file to Django, Django holds it in RAM,
-      // runs the OCR + LLM, and returns the full JSON analysis immediately.
-      
-      /* const response = await fetch('http://localhost:8000/api/analyze/', {
-        method: 'POST',
-        body: formData,
+      // Sending data to Django DRF. 
+      // Django will process the AI, save it to DB, and return the new report ID.
+      const { data } = await api.post('/api/reports/upload/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const data = await response.json();
-      */
 
-      // Simulate network delay for UI testing
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // In a stateless app, instead of routing to an ID, we route to a generic workspace
-      // and pass the data via state, OR we just render the chat interface right here!
-      router.push('/workspace'); 
+      // The AI processing is done, and it's saved in the DB!
+      // Now redirect the user to the unique page for this report.
+      if (data.id) {
+        router.push(`/reports/${data.id}`);
+      } else {
+        throw new Error("Invalid response from server");
+      }
       
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error("Upload error:", err);
       setError('Analysis failed. Please check your connection and try again.');
-    } finally {
-      setUploading(false);
+      setUploading(false); // Only set to false on error. On success, keep loading until redirect finishes.
     }
   };
 
@@ -105,11 +103,11 @@ export default function UploadPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-[2rem] shadow-sm border border-neutral-200"
+        className="w-full max-w-2xl bg-white p-8 sm:p-10 rounded-4xl shadow-sm border border-neutral-200"
       >
         <div className="text-center mb-10">
           <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight mb-3">Upload Medical Report</h1>
-          <p className="text-neutral-500">Secure, private, and instant AI translation. Your files are never stored permanently.</p>
+          <p className="text-neutral-500">Secure AI translation pipeline. Results will be saved to your dashboard.</p>
         </div>
 
         {/* Drag and Drop Zone */}
@@ -149,7 +147,7 @@ export default function UploadPage() {
                   <p className="text-lg font-bold text-neutral-700">
                     <span className="text-indigo-600">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-sm text-neutral-500 mt-1">JPG, PNG, WEBP, or PDF (Max 10MB)</p>
+                  <p className="text-sm text-neutral-500 mt-1">JPG, PNG, or PDF (Max 10MB)</p>
                 </div>
               </motion.div>
             ) : (
@@ -171,14 +169,15 @@ export default function UploadPage() {
           </AnimatePresence>
         </div>
 
-        {/* Selected File Actions & Errors */}
+       {/* Selected File Actions & Errors */}
         <AnimatePresence>
           {error && (
             <motion.div 
+              key="error-message" /* <-- ADDED KEY HERE */
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-4 p-4 bg-rose-50 text-rose-700 rounded-2xl flex items-start gap-3 text-sm font-medium"
+              className="mt-4 p-4 bg-rose-50 text-rose-700 rounded-2xl flex items-start gap-3 text-sm font-medium overflow-hidden"
             >
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p>{error}</p>
@@ -187,6 +186,7 @@ export default function UploadPage() {
 
           {file && !uploading && (
             <motion.div 
+              key="action-buttons" /* <-- ADDED KEY HERE */
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
@@ -200,7 +200,7 @@ export default function UploadPage() {
               </button>
               <button 
                 onClick={handleUpload}
-                className="px-5 py-3.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all flex-[2] flex items-center justify-center gap-2"
+                className="px-5 py-3.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all flex-2 flex items-center justify-center gap-2"
               >
                 Analyze Report
               </button>
@@ -212,20 +212,24 @@ export default function UploadPage() {
         <AnimatePresence>
           {uploading && (
             <motion.div 
+              key="uploading-state" /* <-- ADDED KEY HERE */
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="mt-8 flex flex-col items-center justify-center py-4"
             >
               <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-4" />
-              <p className="text-neutral-900 font-bold">Extracting Medical Data...</p>
-              <p className="text-neutral-500 text-sm mt-1">This usually takes about 5-10 seconds.</p>
+              <p className="text-neutral-900 font-bold">Processing Medical Data...</p>
+              <p className="text-neutral-500 text-sm mt-1 text-center">
+                Running Optical Character Recognition and AI Evaluation.<br/>
+                Please do not close this window.
+              </p>
               
-              {/* Optional: Fake progress bar for better UX */}
               <div className="w-full max-w-xs h-2 bg-neutral-100 rounded-full mt-5 overflow-hidden">
                 <motion.div 
                   initial={{ width: "0%" }}
-                  animate={{ width: "90%" }}
-                  transition={{ duration: 4, ease: "easeOut" }}
+                  animate={{ width: "95%" }}
+                  transition={{ duration: 10, ease: "easeOut" }}
                   className="h-full bg-indigo-600 rounded-full"
                 />
               </div>
