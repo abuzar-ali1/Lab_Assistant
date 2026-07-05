@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, FileText, X, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+// Note: If you removed ProtectedRoute for the stateless version, you can remove this import
 // import ProtectedRoute from '@/Components/ProtectedRoute'; 
 
 export default function UploadPage() {
