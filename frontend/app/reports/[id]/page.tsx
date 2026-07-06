@@ -148,6 +148,7 @@ export default function ReportDetailPage() {
             </motion.div>
           )}
 
+          {/* Completed State */}
           {report.status === 'completed' && report.test_results && (
             <motion.div 
               variants={staggerContainer} 
