@@ -1,189 +1,113 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { Upload, Clock, AlertTriangle, ChevronRight, Activity, FileText, Plus } from 'lucide-react';
-import ProtectedRoute from '@/Components/ProtectedRoute';
-import api from '@/lib/api';
-import EmptyState from '@/Components/EmptyState';
-import ReportCard from '@/Components/ReportCard';
-
-// If you haven't updated your StatCard component yet, you can use this modern inline version
-// to guarantee it matches the new UI perfectly.
-const ModernStatCard = ({ icon, label, value, bgColor, iconColor }: any) => (
-  <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-sm hover:shadow-md transition-shadow flex items-center gap-5">
-    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${bgColor}`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-sm font-medium text-neutral-500 mb-1">{label}</p>
-      <h3 className="text-2xl font-bold text-neutral-900">{value}</h3>
-    </div>
-  </div>
-);
-
-interface ReportSummary {
-  id: number;
-  original_filename: string;
-  status: string;
-  created_at: string;
-  abnormal_count: number;
-  total_tests: number;
-}
+import { motion } from "framer-motion";
+import { AlertCircle, ArrowRight, CalendarClock, FileCheck2, HeartPulse, Plus, RefreshCw, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
+import useSWR from "swr";
+import AppShell from "@/Components/AppShell";
+import EmptyState from "@/Components/EmptyState";
+import ReportCard from "@/Components/ReportCard";
+import { useAuth } from "@/Context/AuthContext";
+import api from "@/lib/api";
+import type { PaginatedReports, ReportSummary } from "@/lib/types";
 
 export default function DashboardPage() {
-  const [reports, setReports] = useState<ReportSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total: 0,
-    abnormal: 0,
-    recent: null as any,
-  });
+  const { user } = useAuth();
+  const { data, error, isLoading: loading, mutate } = useSWR<PaginatedReports>(
+    user ? "/api/reports/?page=1&page_size=6" : null,
+    (url: string) => api.get(url).then((response) => response.data),
+  );
+  const reports: ReportSummary[] = useMemo(() => data?.results || [], [data?.results]);
 
-  useEffect(() => {
-    // Mocking the API call for visual testing. Replace with your actual api.get
-    setTimeout(() => {
-      setReports([
-        { id: 1, original_filename: 'CBC_Blood_Test_June.pdf', status: 'completed', created_at: '2026-06-28T10:00:00Z', abnormal_count: 2, total_tests: 15 },
-        { id: 2, original_filename: 'Lipid_Profile.jpg', status: 'completed', created_at: '2026-06-15T14:30:00Z', abnormal_count: 0, total_tests: 8 },
-      ]);
-      setLoading(false);
-    }, 1500);
-  }, []);
-
-  useEffect(() => {
-    if (reports.length > 0) {
-      const totalAbnormal = reports.reduce((sum, r) => sum + r.abnormal_count, 0);
-      const recent = reports[0];
-      setStats({ total: reports.length, abnormal: totalAbnormal, recent });
-    }
+  const stats = useMemo(() => {
+    const completed = reports.filter((report) => report.status === "completed");
+    const discuss = completed.reduce((total, report) => total + report.abnormal_count, 0);
+    return { completed: completed.length, discuss, latest: reports[0] };
   }, [reports]);
 
-  // Framer Motion Animation Variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring', stiffness: 100, damping: 15 },
-    },
-  };
-
-  const slicedReports = reports?.slice(0, 10) || [];
+  const firstName = user?.first_name || "there";
+  const hasDiscussionItems = stats.discuss > 0;
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-50 pt-28 pb-16">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
-        >
-          {/* Dashboard Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+    <AppShell>
+      <div className="relative px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="ambient-orb ambient-orb-one opacity-60" />
+        <div className="mx-auto max-w-7xl">
+          <motion.header initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-4">
-                <Activity className="w-4 h-4" /> Workspace
-              </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl">
-                My Reports
-              </h1>
-              <p className="text-neutral-500 mt-2 text-base sm:text-lg">
-                Track your medical history in <span className="font-semibold text-indigo-600">English & Urdu</span>
-              </p>
+              <p className="eyebrow">My health space</p>
+              <h1 className="mt-4 text-3xl font-extrabold tracking-[-0.045em] text-[var(--ink)] sm:text-5xl">Good to see you, {firstName}.</h1>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)] sm:text-base">Here’s the clearest view of your recent lab reports.</p>
             </div>
-            
-            <Link href="/upload" className="w-full sm:w-auto">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                New Analysis
-              </motion.button>
-            </Link>
-          </motion.div>
+            <Link href="/upload" className="button-primary !min-h-12 !rounded-2xl sm:self-auto"><Plus className="h-5 w-5" /> Analyze a report</Link>
+          </motion.header>
 
-          {/* Core Analytics Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <ModernStatCard
-              icon={<FileText className="w-6 h-6 text-indigo-600" />}
-              bgColor="bg-indigo-50"
-              label="Analyzed Reports"
-              value={stats.total}
-            />
-            <ModernStatCard
-              icon={<AlertTriangle className="w-6 h-6 text-rose-600" />}
-              bgColor="bg-rose-50"
-              label="Abnormal Outliers"
-              value={stats.abnormal}
-            />
-            <ModernStatCard
-              icon={<Clock className="w-6 h-6 text-amber-600" />}
-              bgColor="bg-amber-50"
-              label="Last Evaluation"
-              value={stats.recent ? new Date(stats.recent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}
-            />
-          </motion.div>
-
-          {/* Documents Content Grid */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold text-neutral-900">Recent Health Stream</h2>
-              {reports.length > 0 && (
-                <Link href="/reports" className="inline-flex items-center gap-1 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
-                  View Full History <ChevronRight className="w-4 h-4" />
-                </Link>
-              )}
+          {loading ? (
+            <DashboardSkeleton />
+          ) : error ? (
+            <div className="surface-card mt-10 flex flex-col items-center px-6 py-14 text-center">
+              <AlertCircle className="h-10 w-10 text-[var(--coral)]" />
+              <h2 className="mt-4 text-xl font-extrabold">We couldn’t load your health space.</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">Your reports are safe. Check the connection and try again.</p>
+              <button onClick={() => mutate()} className="button-secondary mt-6"><RefreshCw className="h-4 w-4" /> Try again</button>
             </div>
+          ) : reports.length === 0 ? (
+            <div className="mt-10"><EmptyState /></div>
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ staggerChildren: 0.08 }}>
+              <section className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {[
+                  { icon: FileCheck2, label: "Reports analyzed", value: stats.completed, detail: "in your private timeline", color: "bg-[var(--brand-pale)] text-[var(--brand)]" },
+                  { icon: HeartPulse, label: "Markers to discuss", value: stats.discuss, detail: stats.discuss ? "across recent reports" : "nothing flagged right now", color: hasDiscussionItems ? "bg-[var(--coral-pale)] text-[var(--coral)]" : "bg-[var(--brand-pale)] text-[var(--brand)]" },
+                  { icon: CalendarClock, label: "Latest report", value: stats.latest ? new Date(stats.latest.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short" }) : "—", detail: "most recent upload", color: "bg-[var(--sun-pale)] text-[#a36a13]" },
+                ].map(({ icon: Icon, label, value, detail, color }) => (
+                  <motion.article key={label} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }} initial="hidden" animate="visible" className="surface-card p-5 sm:p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div><p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]">{label}</p><p className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--ink)]">{value}</p><p className="mt-1 text-xs text-[var(--muted)]">{detail}</p></div>
+                      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${color}`}><Icon className="h-5 w-5" /></span>
+                    </div>
+                  </motion.article>
+                ))}
+              </section>
 
-            <AnimatePresence mode="wait">
-              {loading ? (
-                <motion.div 
-                  key="loading"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  className="space-y-4"
-                >
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-neutral-50 border border-neutral-100 h-24 rounded-2xl animate-pulse" />
-                  ))}
-                </motion.div>
-              ) : reports.length === 0 ? (
-                <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <EmptyState />
-                </motion.div>
-              ) : (
-                <motion.div key="list" className="space-y-4">
-                  {slicedReports.map((report, idx) => (
-                    <motion.div
-                      key={report.id}
-                      variants={itemVariants}
-                      custom={idx}
-                      className="group"
-                    >
-                      {/* Assuming your ReportCard looks good. If not, this is a wrapper that forces nice styling */}
-                      <div className="transition-all duration-200 hover:-translate-y-1">
-                        <ReportCard report={report} />
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.div>
+              <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+                <div className="surface-card p-5 sm:p-7">
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <div><h2 className="text-xl font-extrabold tracking-[-0.03em]">Recent reports</h2><p className="mt-1 text-xs text-[var(--muted)]">Your latest clarity briefs</p></div>
+                    <Link href="/reports" className="flex items-center gap-1 text-xs font-extrabold text-[var(--brand-dark)] hover:gap-2">View all <ArrowRight className="h-4 w-4" /></Link>
+                  </div>
+                  <div className="space-y-3">{reports.slice(0, 4).map((report) => <ReportCard key={report.id} report={report} compact />)}</div>
+                </div>
+
+                <aside className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 ${hasDiscussionItems ? "bg-[var(--ink)] text-white" : "bg-[var(--brand)] text-white"}`}>
+                  <Sparkles className="absolute right-6 top-6 h-5 w-5 text-[var(--sun)] soft-float" />
+                  <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.16em] text-white/60">Your next best step</p>
+                  <h2 className="mt-5 text-2xl font-extrabold leading-tight tracking-[-0.035em]">
+                    {hasDiscussionItems ? "Turn flagged markers into better questions." : "Keep your next report in the same timeline."}
+                  </h2>
+                  <p className="mt-4 text-sm leading-6 text-white/65">
+                    {hasDiscussionItems ? "Open a report to see plain explanations and a ready-made discussion list for your doctor." : "A consistent history makes reports easier to revisit before your next appointment."}
+                  </p>
+                  <Link href={stats.latest ? `/reports/${stats.latest.id}` : "/upload"} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-[var(--ink)] transition hover:-translate-y-0.5">
+                    {stats.latest ? "Open latest brief" : "Add a report"} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <div className="mt-10 border-t border-white/12 pt-5 text-xs leading-5 text-white/50">LabSaathi explains results. Your clinician provides diagnosis and treatment.</div>
+                </aside>
+              </section>
+            </motion.div>
+          )}
+        </div>
       </div>
-    </ProtectedRoute>
+    </AppShell>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="mt-10">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="surface-card h-36 p-6"><div className="shimmer h-3 w-28 rounded" /><div className="shimmer mt-7 h-9 w-16 rounded-lg" /><div className="shimmer mt-3 h-3 w-36 rounded" /></div>)}</div>
+      <div className="surface-card mt-6 p-6"><div className="shimmer h-6 w-36 rounded" /><div className="mt-6 space-y-3">{[1, 2, 3].map((item) => <div key={item} className="shimmer h-20 rounded-2xl" />)}</div></div>
+    </div>
   );
 }

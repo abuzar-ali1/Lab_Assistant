@@ -12,13 +12,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k_x*z@se4j)u0i)g@2zf)p29*470r+92=oc&%6i!$t=b*s+_18'
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).lower() in {'1', 'true', 'yes', 'on'}
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-development-only-change-me')
+DEBUG = env_bool('DEBUG', True)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -33,10 +37,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'storages', 
     'apps.users',
     'apps.reports',
-    'google.generativeai', 
 ]
 
 MIDDLEWARE = [
@@ -69,22 +73,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'lab_Assistant.wsgi.application'
 
-tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
-# Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
-        'USER': tmpPostgres.username,
-        'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
-        'PORT': 5432,
-        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
-
-
-
+database_url = os.getenv("DATABASE_URL", "").strip()
+if database_url and not env_bool('USE_SQLITE', False):
+    parsed_database = urlparse(database_url)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed_database.path.lstrip('/'),
+            'USER': parsed_database.username,
+            'PASSWORD': parsed_database.password,
+            'HOST': parsed_database.hostname,
+            'PORT': parsed_database.port or 5432,
+            'OPTIONS': dict(parse_qsl(parsed_database.query)),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 
@@ -183,7 +192,9 @@ if not USE_R2_STORAGE:
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    origin.strip()
+    for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    if origin.strip()
 ]
 CORS_ALLOW_METHODS = [
     'GET',
@@ -223,6 +234,8 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # Auth User Model
@@ -246,8 +259,18 @@ LOGGING = {
     },
 }
 
-# Email settings for Forgot Password (using console backend for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email and frontend links
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'LabSaathi <noreply@labsaathi.local>')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+
+if not DEBUG:
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Google OAuth2 Settings
 GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', 'placeholder-google-client-id.apps.googleusercontent.com')

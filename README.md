@@ -1,98 +1,130 @@
-# Lab Assistant
+# LabSaathi
 
-What this is
-------------
-Lab Assistant is a web application that lets authenticated users upload medical reports and receive concise, clinician-grade summaries. The app uses a Django REST backend and a Next.js TypeScript frontend; uploaded reports are processed by an AI summarizer that explains medical jargon in plain English and provides Urdu translations alongside English summaries.
+**Lab reports, made human.**
 
-### Stack
-- **Language(s):** TypeScript (frontend), Python (backend)
-- **Framework / runtime:** Next.js (frontend), Django + Django REST Framework (backend)
-- **Notable libraries:** Next.js + React, Django, Django REST Framework, a language/ML inference client for AI summarization
+LabSaathi is a bilingual health-clarity companion for Pakistani patients. It turns a PDF or photo of a laboratory report into a structured brief that answers three practical questions:
 
-## How it's organized
+1. What needs attention?
+2. What does it mean in plain English and Urdu?
+3. What should I ask my doctor next?
 
+The product is deliberately framed as an education and appointment-preparation tool—not a diagnosis engine.
+
+## Why this project stands out
+
+- **Patient-first information design:** results are separated into “in range” and “worth discussing” without alarmist scoring.
+- **Bilingual explanations:** every extracted marker can include concise English and natural Urdu guidance.
+- **Doctor discussion mode:** the AI produces specific questions that are consolidated into a ready-to-use appointment list.
+- **Health timeline:** authenticated users can search, filter, and revisit previous report briefs.
+- **Meaningful product states:** branded route loading, upload stages, report-processing polling, skeletons, empty states, recovery states, and API retry paths.
+- **Privacy-aware architecture:** authenticated report ownership, private signed file links, JWT rotation/blacklisting, optional Cloudflare R2, and environment-driven production security.
+- **Responsive and accessible:** keyboard focus states, reduced-motion support, mobile navigation, touch-friendly controls, and readable Urdu layouts.
+
+## Stack
+
+| Surface | Technology |
+| --- | --- |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Framer Motion, SWR |
+| Backend | Django 6, Django REST Framework, Simple JWT |
+| AI | Google GenAI SDK with structured Gemini JSON output |
+| Storage | Local media in development; private Cloudflare R2 in production |
+| Database | SQLite zero-config fallback; PostgreSQL through `DATABASE_URL` |
+
+## Product flow
+
+```text
+Account → Upload readiness check → Secure report upload
+        → Gemini structured extraction → Bilingual clarity brief
+        → Marker filters + doctor questions → Searchable report timeline
 ```
-backend/                     Django project and server
-  manage.py                  Django CLI entrypoint
-  requirements.txt           Python dependencies
-  lab_Assistant/             Django project package (settings, wsgi, asgi, urls)
-  apps/                      Django apps
-    users/                   user models, authentication, serializers, views, tests
-    reports/                 report models, upload handling, AI summarization services, views, tests
 
-frontend/                    Next.js + TypeScript frontend
-  app/                       Next.js app routes (App Router)
-  Components/                React components and UI for login, upload, results
-  Context/                   React context/providers (auth, API client)
-  public/                    static assets
-  package.json               npm scripts & dependencies
-  tsconfig.json              TypeScript config
-  README.md                  local frontend notes
+## Repository structure
+
+```text
+backend/
+  apps/users/             authentication, profiles, secure password reset
+  apps/reports/           uploads, report ownership, Gemini extraction
+  lab_Assistant/          Django settings, storage, and routing
+
+frontend/
+  app/                    public, auth, dashboard, upload, and report routes
+  Components/             reusable shell, navigation, states, and cards
+  Context/                authenticated session state
+  lib/                    API client, types, and error helpers
 ```
 
-How it fits together
---------------------
-Users authenticate via the frontend (calls to the Django auth endpoints). After login they can upload medical reports (PDF, image, or text) through the frontend which sends the file to the Django API. The backend stores the report (see `backend/lab_Assistant/storage.py`) and calls the AI summarization service (implementation point in `backend/apps/reports/services.py`). The AI returns:
-- a short English summary in plain language,
-- an explanation of clinical jargon and findings,
-- an Urdu translation of the summary/explanations.
+## Local setup
 
-The frontend displays the English summary, the Urdu translation, and the original report for review. Users can download the summary or share it according to app policies.
+### 1. Backend
 
-## How to run it
-The shortest path from a fresh clone to a running development environment.
-
-Backend (Django)
-```
+```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-# set required env vars
-export DJANGO_SECRET_KEY="replace-with-a-secret"
-export DATABASE_URL="postgres://user:pass@localhost:5432/dbname"
-export DEBUG=1
-# AI service settings (example)
-export AI_API_KEY="your-ai-api-key"
-export AI_MODEL_ENDPOINT="https://api.example.com/v1/summarize"
-
+copy .env.example .env       # Windows
+# cp .env.example .env       # macOS/Linux
 python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver
 ```
 
-Frontend (Next.js / TypeScript)
-```
+SQLite is used when `DATABASE_URL` is blank or `USE_SQLITE=True`. Add `GOOGLE_API_KEY` to process reports. Password-reset emails print to the backend console in local development.
+
+### 2. Frontend
+
+```bash
 cd frontend
 npm install
-# point frontend to backend API
-export NEXT_PUBLIC_API_URL="http://localhost:8000/api"
+copy .env.example .env       # Windows
+# cp .env.example .env       # macOS/Linux
 npm run dev
 ```
 
-## Typical request / response example
-API endpoint (example): POST /api/reports/upload
-- Request: multipart/form-data with file and optional metadata
-- Response: JSON {
-  "report_id": "...",
-  "summary_en": "Short English summary...",
-  "explanation_en": "Explanation of jargon...",
-  "summary_ur": "Urdu translation..."
-}
+Open `http://localhost:3000`.
 
-## Data privacy & security notes
-- Medical reports are highly sensitive. Store uploads encrypted at rest and limit access.
-- Consider automatic redaction of PII before sending to any third-party AI service.
-- Document retention policy and user consent for processing medical data.
+## Main routes
 
-## Tests
-- Backend unit tests live under `backend/apps/*/tests.py`. Run with `pytest` or `python manage.py test`.
+| Route | Purpose |
+| --- | --- |
+| `/` | Product story and patient-focused value proposition |
+| `/register`, `/login` | Email or Google authentication |
+| `/forgot-password`, `/reset-password` | Secure token-based account recovery |
+| `/dashboard` | Personalized clarity overview and recent reports |
+| `/upload` | File readiness checks and animated analysis handoff |
+| `/reports` | Searchable and filterable health timeline |
+| `/reports/:id` | Bilingual findings, source report, and doctor questions |
 
-## Try asking
-- Can you add an API example for authenticating and uploading a PDF from curl?
-- Should we implement server-side PII redaction before AI calls (I can draft a simple pipeline)?
-- Do you want a Docker Compose file that runs PostgreSQL, Django, and Next.js for local dev?
+## API highlights
 
+```text
+POST   /api/register/
+POST   /api/login/
+POST   /api/google-login/
+POST   /api/forgot-password/
+POST   /api/reset-password/
+GET    /api/profile/
 
----
+POST   /api/reports/upload/
+GET    /api/reports/
+GET    /api/reports/:id/
+DELETE /api/reports/:id/delete/
+```
 
-If you'd like, I can also add a `.env.example` file with common env vars, a curl example for the upload API, or a small CI workflow to run backend tests and frontend build on PRs.
+Every report query is scoped to `request.user`; one user cannot retrieve another user’s report by guessing its ID.
+
+## Validation
+
+```bash
+cd frontend
+npm run lint
+npm run build
+
+cd ../backend
+python manage.py check
+python manage.py test
+```
+
+## Medical safety boundary
+
+LabSaathi explains document content and helps patients prepare questions. It must not be presented as a diagnostic service, emergency service, prescription tool, or replacement for a qualified clinician. Production deployments should also document retention, consent, AI-subprocessor, and deletion policies for the target jurisdiction.
