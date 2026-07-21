@@ -63,8 +63,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-copy .env.example .env       # Windows
-# cp .env.example .env       # macOS/Linux
+# Configure the existing backend/.env file for your environment
 python manage.py migrate
 python manage.py runserver
 ```
@@ -76,8 +75,7 @@ SQLite is used when `DATABASE_URL` is blank or `USE_SQLITE=True`. Add `GOOGLE_AP
 ```bash
 cd frontend
 npm install
-copy .env.example .env       # Windows
-# cp .env.example .env       # macOS/Linux
+# Configure the existing frontend/.env file for your environment
 npm run dev
 ```
 
